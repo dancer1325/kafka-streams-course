@@ -13,10 +13,11 @@ public class StreamsStarterApp {
 
     public static void main(String[] args) {
 
+        //Basic Kafka Streams's properties
         Properties config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-starter-app");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); //The key comes from the Consumer, since it's a Consumer's property
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 

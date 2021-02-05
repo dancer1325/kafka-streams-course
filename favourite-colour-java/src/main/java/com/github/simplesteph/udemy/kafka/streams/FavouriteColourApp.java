@@ -17,7 +17,7 @@ public class FavouriteColourApp {
 
     public static void main(String[] args) {
         Properties config = new Properties();
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "favourite-colour-java");
+        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "favourite-colour3-java"); //Each application will have different application_id
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -29,10 +29,11 @@ public class FavouriteColourApp {
         KStreamBuilder builder = new KStreamBuilder();
 
         // Step 1: We create the topic of users keys to colours
-        KStream<String, String> textLines = builder.stream("favourite-colour-input");
+        KStream<String, String> textLines = builder.stream("favourite-colour-input3");
 
         KStream<String, String> usersAndColours = textLines
-                // 1 - we ensure that a comma is here as we will split on it
+                // 1 - we ensure that a comma is here as we will split on it. If we create a producer without indicating a key being sent --> all which is sent
+				// from the producer will be the value
                 .filter((key, value) -> value.contains(","))
                 // 2 - we select a key that will be the user id (lowercase for safety)
                 .selectKey((key, value) -> value.split(",")[0].toLowerCase())
@@ -41,19 +42,21 @@ public class FavouriteColourApp {
                 // 4 - we filter undesired colours (could be a data sanitization step
                 .filter((user, colour) -> Arrays.asList("green", "blue", "red").contains(colour));
 
-        usersAndColours.to("user-keys-and-colours");
+        //To publish to intermediate Kafka Topic
+        //It's not necessary to specify the SERDE since both are String
+        usersAndColours.to("user-keys-and-colours3");
 
         // step 2 - we read that topic as a KTable so that updates are read correctly
-        KTable<String, String> usersAndColoursTable = builder.table("user-keys-and-colours");
+        KTable<String, String> usersAndColoursTable = builder.table("user-keys-and-colours3");
 
         // step 3 - we count the occurrences of colours
         KTable<String, Long> favouriteColours = usersAndColoursTable
-                // 5 - we group by colour within the KTable
+                // 5 - we group by colour within the KTable. It's like to select a new key
                 .groupBy((user, colour) -> new KeyValue<>(colour, colour))
                 .count("CountsByColours");
 
-        // 6 - we output the results to a Kafka Topic - don't forget the serializers
-        favouriteColours.to(Serdes.String(), Serdes.Long(),"favourite-colour-output");
+        // 6 - we output the results to a Kafka Topic - don't forget the serializers, since right now they aren't String both
+        favouriteColours.to(Serdes.String(), Serdes.Long(),"favourite-colour-output3");
 
         KafkaStreams streams = new KafkaStreams(builder, config);
         // only do this in dev - not in prod

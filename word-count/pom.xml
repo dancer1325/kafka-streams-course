@@ -58,6 +58,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <!-- To specify full path of the main class-->
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
