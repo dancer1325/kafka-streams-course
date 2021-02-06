@@ -33,7 +33,7 @@ public class UserDataProducer {
 
         // FYI - We do .get() to ensure the writes to the topics are sequential, for the sake of the teaching exercise
         // DO NOT DO THIS IN PRODUCTION OR IN ANY PRODUCER. BLOCKING A FUTURE IS BAD!
-
+        // Doing a .get() --> Futurable is blocked
 
         // we are going to test different scenarios to illustrate the join
 
@@ -62,7 +62,7 @@ public class UserDataProducer {
         producer.send(purchaseRecord("stephane", "Computer (4)")).get();
         producer.send(userRecord("stephane", "First=Stephane,Last=Maarek,GitHub=simplesteph")).get();
         producer.send(purchaseRecord("stephane", "Books (4)")).get();
-        producer.send(userRecord("stephane", null)).get(); // delete for cleanup
+        producer.send(userRecord("stephane", null)).get(); //KTable with value == null --> To delete the record for cleanup
 
         Thread.sleep(10000);
 

@@ -17,15 +17,15 @@ public class BankTransactionsProducer {
         Properties properties = new Properties();
 
         // kafka bootstrap server
-        properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092"); //ProducerConfig.BOOTSTRAP_SERVERS_CONFIG variable introduced from Kafka > 0.11
+        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName()); //We want to handle json document as String
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         // producer acks
-        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all"); // strongest producing guarantee
+        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all"); // strongest producing guarantee (=== either leader or INR receive a message about have been received the message)
         properties.setProperty(ProducerConfig.RETRIES_CONFIG, "3");
-        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "1");
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "1"); //To send the stream data fast by the producer
         // leverage idempotent producer from Kafka 0.11 !
-        properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true"); // ensure we don't push duplicates
+        properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true"); // ensure we don't push duplicates --> Exactly once
 
         Producer<String, String> producer = new KafkaProducer<>(properties);
 
@@ -34,7 +34,7 @@ public class BankTransactionsProducer {
             System.out.println("Producing batch: " + i);
             try {
                 producer.send(newRandomTransaction("john"));
-                Thread.sleep(100);
+                Thread.sleep(100); //To wait for sending messages between one key and another
                 producer.send(newRandomTransaction("stephane"));
                 Thread.sleep(100);
                 producer.send(newRandomTransaction("alice"));
@@ -44,9 +44,10 @@ public class BankTransactionsProducer {
                 break;
             }
         }
-        producer.close();
+        producer.close(); //A good practise to close the producer
     }
 
+    //The transaction is a JsonDocument
     public static ProducerRecord<String, String> newRandomTransaction(String name) {
         // creates an empty json {}
         ObjectNode transaction = JsonNodeFactory.instance.objectNode();
@@ -61,6 +62,7 @@ public class BankTransactionsProducer {
         transaction.put("name", name);
         transaction.put("amount", amount);
         transaction.put("time", now.toString());
+        //Name is the Topic's key, because we use it in Kafka Streams to handle the aggregations
         return new ProducerRecord<>("bank-transactions", name, transaction.toString());
     }
 }

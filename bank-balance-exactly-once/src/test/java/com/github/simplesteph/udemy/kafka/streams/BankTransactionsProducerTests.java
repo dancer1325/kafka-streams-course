@@ -24,6 +24,7 @@ public class BankTransactionsProducerTests {
         try {
             JsonNode node = mapper.readTree(value);
             assertEquals("john", node.get("name").asText());
+            //The message is the one which will be shown if the condition doesn't match
             assertTrue("Amount should be less than 100", node.get("amount").asInt() < 100);
         } catch (IOException e) {
             e.printStackTrace();

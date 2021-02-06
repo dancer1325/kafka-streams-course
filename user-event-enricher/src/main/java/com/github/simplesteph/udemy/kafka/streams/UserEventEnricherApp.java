@@ -24,16 +24,20 @@ public class UserEventEnricherApp {
 
         // we get a global table out of Kafka. This table will be replicated on each Kafka Streams application
         // the key of our globalKTable is the user ID
+        // Since we have specified the default SERDE values --> It's not necessary to specify it
         GlobalKTable<String, String> usersGlobalTable = builder.globalTable("user-table");
 
         // we get a stream of user purchases
+        // Since we have specified the default SERDE values --> It's not necessary to specify it
         KStream<String, String> userPurchases = builder.stream("user-purchases");
 
         // we want to enrich that stream
         KStream<String, String> userPurchasesEnrichedJoin =
+                //Join means InnerJoin. KStream's key === KTable's key
                 userPurchases.join(usersGlobalTable,
                         (key, value) -> key, /* map from the (key, value) of this stream to the key of the GlobalKTable */
-                        (userPurchase, userInfo) -> "Purchase=" + userPurchase + ",UserInfo=[" + userInfo + "]"
+                        (userPurchase, userInfo) -> "Purchase=" + userPurchase + ",UserInfo=[" + userInfo + "]" //(Stream's value,  Table's value) and since it's an InnerJoin
+                        //--> both values are != 0
                 );
 
         userPurchasesEnrichedJoin.to("user-purchases-enriched-inner-join");
@@ -42,7 +46,7 @@ public class UserEventEnricherApp {
         KStream<String, String> userPurchasesEnrichedLeftJoin =
                 userPurchases.leftJoin(usersGlobalTable,
                         (key, value) -> key, /* map from the (key, value) of this stream to the key of the GlobalKTable */
-                        (userPurchase, userInfo) -> {
+                        (userPurchase, userInfo) -> {       //(Stream's value,  Table's value)
                             // as this is a left join, userInfo can be null
                             if (userInfo != null) {
                                 return "Purchase=" + userPurchase + ",UserInfo=[" + userInfo + "]";

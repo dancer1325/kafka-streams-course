@@ -24,17 +24,19 @@ public class BankBalanceExactlyOnceApp {
     public static void main(String[] args) {
         Properties config = new Properties();
 
+        //We don't indicate here the serialize/deserializer Serdes, since we create a JSON serde for the value record
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "bank-balance-application");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         // we disable the cache to demonstrate all the "steps" involved in the transformation - not recommended in prod
+        //
         config.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0");
 
         // Exactly once processing!!
         config.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);
 
-        // json Serde
+        // To create our json Serde
         final Serializer<JsonNode> jsonSerializer = new JsonSerializer();
         final Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
         final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
@@ -42,6 +44,7 @@ public class BankBalanceExactlyOnceApp {
 
         KStreamBuilder builder = new KStreamBuilder();
 
+        //To create the KStream, we use the constructor in which we can specify Key's and Value's Serde
         KStream<String, JsonNode> bankTransactions =
                 builder.stream(Serdes.String(), jsonSerde, "bank-transactions");
 
