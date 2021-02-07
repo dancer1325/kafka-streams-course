@@ -16,7 +16,11 @@ import org.apache.kafka.streams.kstream.Produced;
 
 public class WordCountApp {
 
+    //1º) As public simply
     public Topology createTopology(){
+        //2º) To create a static method
+//    public static Topology createTopology(){
+
         StreamsBuilder builder = new StreamsBuilder();
         // 1 - stream from Kafka
 
@@ -49,9 +53,13 @@ public class WordCountApp {
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
+        //Ways to create the Topology
+        //1º) To create an Instance of this class, and using a private method
         WordCountApp wordCountApp = new WordCountApp();
-
         KafkaStreams streams = new KafkaStreams(wordCountApp.createTopology(), config);
+        //2º) To create a static method
+//        KafkaStreams streams = new KafkaStreams(createTopology(), config);
+
         streams.start();
 
         // shutdown hook to correctly close the streams application
@@ -67,7 +75,5 @@ public class WordCountApp {
                 break;
             }
         }
-
-
     }
 }

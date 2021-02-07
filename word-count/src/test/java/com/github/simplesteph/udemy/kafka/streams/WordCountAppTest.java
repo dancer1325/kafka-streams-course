@@ -24,14 +24,15 @@ public class WordCountAppTest {
 
     StringSerializer stringSerializer = new StringSerializer();
 
+    //It's the Kafka Stream's source
     ConsumerRecordFactory<String, String> recordFactory =
-             new ConsumerRecordFactory<>(stringSerializer, stringSerializer);
+             new ConsumerRecordFactory<>(stringSerializer, stringSerializer); //Key's Serde and Value's Serde
 
 
     @Before
     public void setUpTopologyTestDriver(){
         Properties config = new Properties();
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "test"); //AplicationIdConfig and BootstrapServerConfig can be any value
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -43,6 +44,7 @@ public class WordCountAppTest {
 
     @After
     public void closeTestDriver(){
+        //If you don't close it --> The tests won't work, since the Stream app is not cleaned up
         testDriver.close();
     }
 
@@ -67,7 +69,7 @@ public class WordCountAppTest {
         OutputVerifier.compareKeyValue(readOutput(), "testing", 1L);
         OutputVerifier.compareKeyValue(readOutput(), "kafka", 1L);
         OutputVerifier.compareKeyValue(readOutput(), "streams", 1L);
-        assertEquals(readOutput(), null);
+        assertEquals(readOutput(), null); //When there are no more records to read
 
         String secondExample = "testing Kafka again";
         pushNewInputRecord(secondExample);
